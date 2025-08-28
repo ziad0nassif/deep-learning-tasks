@@ -126,6 +126,4 @@ tr_aug_dict = dict(
 4. **Data Augmentation**: Effective augmentation strategies for medical images
 5. **Performance Optimization**: Balancing model complexity with computational efficiency
 
----
-
-**Note**: This implementation demonstrates state-of-the-art performance in brain tumor segmentation, with results suitable for research and potential clinical applications. The model shows excellent generalization with consistent performance across all evaluation datasets.
+----
