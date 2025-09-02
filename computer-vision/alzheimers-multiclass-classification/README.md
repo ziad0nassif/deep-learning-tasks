@@ -1,129 +1,101 @@
-# 🧠 Brain Tumor Segmentation with U-Net 2D
+# Alzheimer's Disease Multiclass Classification with Transfer Learning
 
-A deep learning implementation for brain tumor segmentation using U-Net architecture on MRI scans. This project focuses on accurate pixel-level classification of brain tumors from medical imaging data.
+[![Kaggle Dataset](https://img.shields.io/badge/Dataset-Kaggle-blue)](https://www.kaggle.com/datasets/aryansinghal10/alzheimers-multiclass-dataset-equal-and-augmented/data)
 
-## 🎯 Objective
+## 🧠 Project Overview
 
-Develop a robust U-Net model for accurate brain tumor segmentation from MRI scans, achieving high precision in medical image analysis for potential clinical applications.
+This project implements an efficient deep learning approach for classifying Alzheimer's disease severity using brain MRI scans. The model utilizes **transfer learning** and **progressive fine-tuning** to achieve high accuracy while significantly reducing computational costs.
+
+### Key Features
+- **High Accuracy**: 99.61% training accuracy, 98.98% test accuracy
+- **Computationally Efficient**: Two-stage training approach reduces computational requirements
+- **Transfer Learning**: Leverages ResNet-50 pre-trained on RadImageNet
+- **Progressive Fine-tuning**: Strategic layer unfreezing for optimal performance
 
 ## 📊 Dataset
 
-- **Source**: LGG MRI Segmentation Dataset (Kaggle)
-- **Total Images**: 3,929 MRI scans
-- **Image Size**: 256x256 pixels
-- **Format**: TIFF images with corresponding masks
-- **Split**: 
-  - Training: 3,143 images (80%)
-  - Validation: 393 images (10%)
-  - Test: 393 images (10%)
+The dataset contains **MRI brain scans** categorized into four classes representing different stages of Alzheimer's disease:
+
+| Class | Label | Description |
+|-------|-------|-------------|
+| NonDemented | 2 | Normal cognitive function |
+| VeryMildDemented | 3 | Very mild cognitive decline |
+| MildDemented | 0 | Mild cognitive impairment |
+| ModerateDemented | 1 | Moderate dementia |
+
+**Dataset Split:**
+- Training: 35,200 images (80%)
+- Validation: 4,400 images (10%)  
+- Testing: 4,400 images (10%)
 
 ## 🏗️ Model Architecture
 
-**U-Net 2D Implementation**
-- **Architecture**: Classic U-Net with encoder-decoder structure
-- **Input Size**: 256×256×3 (RGB)
-- **Output**: Binary segmentation mask
-- **Key Features**:
-  - Skip connections for feature preservation
-  - Contracting path (encoder) for context capture
-  - Expanding path (decoder) for precise localization
+### Base Model: ResNet-50 + Custom Head
+- Pre-trained on **RadImageNet** with **include_top=False**
+- **Custom classification head**:
+  - Global Average Pooling layer
+  - Dense layer (256 units, ReLU)
+  - Dense layer (128 units, ReLU) 
+  - Output layer (4 units, Softmax)
+- Total layers: ~180 (ResNet-50 base + custom layers)
+- Input size: 256×256×3 RGB images
 
-## 📈 Custom Metrics & Loss Functions
+### Two-Stage Training Strategy
 
-### Dice Coefficient
-```python
-def dice_coef(y_true, y_pred, smooth=100):
-    y_true_flatten = K.flatten(y_true)
-    y_pred_flatten = K.flatten(y_pred)
-    
-    intersection = K.sum(y_true_flatten * y_pred_flatten)
-    union = K.sum(y_true_flatten) + K.sum(y_pred_flatten)
-    return (2 * intersection + smooth) / (union + smooth)
-```
+#### Stage 1: Full Network Training (10 epochs)
+- **All layers trainable** with include_top=False
+- Added Global Average Pooling layer
+- Added 2 Dense layers + Softmax for classification
+- Learning rate: 1e-4
+- Focus: Initial adaptation of entire network to Alzheimer's classification
 
-### IoU Coefficient
-```python
-def iou_coef(y_true, y_pred, smooth=100):
-    intersection = K.sum(y_true * y_pred)
-    sum = K.sum(y_true + y_pred)
-    iou = (intersection + smooth) / (sum - intersection + smooth)
-    return iou
-```
-
-## 🚀 Training Configuration
-
-### Hyperparameters
-- **Image Size**: 256×256 pixels
-- **Batch Size**: 32
-- **Epochs**: 100
-- **Optimizer**: Adam (learning_rate=0.0001)
-- **Loss Function**: Dice Loss
-- **Metrics**: Accuracy, IoU Coefficient, Dice Coefficient
-
-### Data Augmentation
-```python
-tr_aug_dict = dict(
-    rotation_range=0.2,
-    width_shift_range=0.05,
-    height_shift_range=0.05,
-    shear_range=0.05,
-    zoom_range=0.05,
-    horizontal_flip=True,
-    fill_mode='nearest'
-)
-```
-
-### Callbacks
-- **ModelCheckpoint**: Save best model based on validation loss
-- **ReduceLROnPlateau**: Learning rate reduction (factor=0.5, patience=5)
-
-## 📊 Results
-
-### Model Performance
-
-| Dataset | Loss | Accuracy | Dice Coef | IoU Coef |
-|---------|------|----------|-----------|-----------|
-| **Training** | -0.9232 | 99.85% | 0.9197 | 0.8524 |
-| **Validation** | -0.9001 | 99.79% | 0.8915 | 0.8059 |
-| **Test** | -0.9111 | 99.80% | 0.9225 | 0.8570 |
-
-### Key Achievements
-- ✅ **High Accuracy**: >99.8% across all datasets
-- ✅ **Excellent Dice Score**: >0.92 indicating strong overlap
-- ✅ **Good IoU Performance**: >0.85 showing precise segmentation
-- ✅ **Consistent Performance**: Stable metrics across train/val/test splits
-- ✅ **No Overfitting**: Validation performance closely matches training
+#### Stage 2: Selective Fine-tuning (20 epochs)
+- **Freeze first 120 layers** (preserve low-level features)
+- **Unfreeze last 60 layers** + custom classification head
+- **67% computational cost reduction** in this stage
+- Focus: Fine-tune high-level features and classification layers
 
 
-## 🔍 Key Implementation Details
+## 📈 Results
 
-### Memory Optimization
-- Reduced image size to 256×256 for efficiency
-- Batch size of 32 to balance performance and memory usage
-- Data generators for memory-efficient data loading
+| Metric | Training | Validation | Testing |
+|--------|----------|------------|---------|
+| **Accuracy** | 99.61% | 98.30% | 98.98% |
+| **Loss** | 0.0107 | 0.0517 | 0.0297 |
 
-### Training Efficiency
-- Adam optimizer for faster convergence
-- Learning rate scheduling for optimal training
-- Early stopping to prevent overfitting
+### Model Performance Analysis
+- **Excellent generalization**: Minimal overfitting between train/test
+- **Consistent validation**: Stable performance across datasets  
+- **Efficient training**: Achieved high accuracy with reduced computational cost
+
+## 🚀 Key Innovations
+
+### 1. Strategic Transfer Learning
+- **RadImageNet weights**: Medical imaging pre-training provides domain-specific features
+- **Progressive unfreezing**: Gradual adaptation prevents catastrophic forgetting
+
+### 2. Computational Optimization  
+- **Selective fine-tuning**: Only 33% of layers trainable in final stage
+- **Two-stage approach**: Reduces total training time while maintaining accuracy
+- **Smart layer selection**: Preserve low-level medical imaging features, adapt high-level classifiers
+
+### 3. Robust Training Pipeline
+- **Early stopping**: Prevents overfitting (patience=20)
+- **Learning rate scheduling**: Adaptive reduction on plateau
+- **Model checkpointing**: Save best performing weights
+
 
 ## 📚 References
 
-- Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation
-- LGG MRI Segmentation Dataset: [Kaggle Link](https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation)
+- Dataset: [Alzheimer's Multiclass Dataset - Kaggle](https://www.kaggle.com/datasets/aryansinghal10/alzheimers-multiclass-dataset-equal-and-augmented/data)
 
-## 🏆 Project Status
+## 🤝 Contributing
 
-**Status**: ✅ Completed  
-**Performance**: Excellent (>99% accuracy, >0.92 Dice score)  
-**Medical Relevance**: High - suitable for clinical research applications  
+Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests to improve the model performance or add new features.
 
-## 💡 Key Learnings
+## 📝 License
 
-1. **Medical Image Segmentation**: Understanding the importance of precise pixel-level classification in medical imaging
-2. **Custom Metrics**: Implementation of domain-specific metrics (Dice, IoU) for medical image analysis
-3. **U-Net Architecture**: Deep understanding of encoder-decoder architecture with skip connections
-4. **Data Augmentation**: Effective augmentation strategies for medical images
-5. **Performance Optimization**: Balancing model complexity with computational efficiency
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-----
+---
+
