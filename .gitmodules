@@ -1,3 +1,6 @@
 [submodule "GANs/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks"]
 	path = GANs/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks
 	url = https://github.com/ziad0nassif/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks.git
+[submodule "computer-vision/Chest-XRay-Denoising"]
+	path = computer-vision/Chest-XRay-Denoising
+	url = https://github.com/ziad0nassif/Chest-XRay-Denoising
