@@ -1,0 +1,3 @@
+[submodule "GANs/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks"]
+	path = GANs/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks
+	url = https://github.com/ziad0nassif/Pix2Pix-based-Synthetic-Chest-X-Ray-Generation-from-Lung-Segmentation-Masks.git
